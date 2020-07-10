@@ -2,7 +2,7 @@
     <div>
         <h1>Whatcha thinking of doing?</h1>
         <hr class="hrpartial" v-if="items.length !== 0">
-        <div class="title_bar">
+        <div class="title_bar" v-if="items.length !== 0">
             <span style="float: left; margin-right: 8px">Done</span>
             <span style="float: left">Item</span>
             <span style="float: right">Remove</span>
@@ -34,6 +34,7 @@
     export default {
         name: "todo_page",
         created() {
+            this.serverCheck();
             if(this.useServer) {
                 const todoUrl = 'http://localhost:9000/data/todos';
                 axios.get(todoUrl).then(response => {
@@ -140,7 +141,15 @@
                 return returnedId;
 
             },
-        }
+            serverCheck: function() {
+                let uri = window.location.href.split('?');
+                if (uri.length == 2) {
+                    if (uri[1].includes('local')) {
+                        this.useServer=false;
+                    }
+                }
+            }
+        },
     }
 </script>
 
