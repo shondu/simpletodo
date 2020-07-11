@@ -40,5 +40,18 @@ public class TodoServiceImpl implements TodoService {
             this.todoRepository.save(todoObject);
         }
 
+        for(Todo savedTodo: this.todoRepository.findAll()) {
+            boolean foundId = false;
+            for(Todo listTodoEntry : todoList){
+                if (savedTodo.getId() == listTodoEntry.getId()) {
+                    foundId = true;
+                    break;
+                }
+            }
+            if(!foundId) {
+                this.todoRepository.delete(savedTodo);
+            }
+        }
+
     }
 }

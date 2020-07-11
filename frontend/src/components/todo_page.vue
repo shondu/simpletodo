@@ -1,27 +1,37 @@
 <template>
     <div>
         <h1>Whatcha thinking of doing?</h1>
-        <hr class="hrpartial" v-if="items.length !== 0">
-        <div class="title_bar" v-if="items.length !== 0">
-            <span style="float: left; margin-right: 8px">Done</span>
-            <span style="float: left">Item</span>
-            <span style="float: right">Remove</span>
+        <hr class="hr-partial" v-if="items.length !== 0">
+        <div class="title-bar" v-if="items.length !== 0">
+            <span class="float-left space-right8">Done</span>
+            <span class="float-left">Item</span>
+            <span class="float-right">Remove</span>
         </div>
         <br>
-        <ul class="mainlist">
-            <li v-for="item in items" :key="item.id" v-bind:class="{ item_completed : item.completed}">
+        <ul class="todo-list">
+            <li v-for="item in items"
+                :key="item.id"
+                :id="'listItem_' + item.id"
+                :class="{ 'item-completed' : item.completed }"
+                @click="listItemClicked">
                 <input type="checkbox"
                        :id="item.id"
                        :value="item.id"
                        @click="itemClicked"
                        v-model="selectedItem"
-                        class="done_check">
-                {{item.todoValue}}
-                <span @click="removeEntry(item.id)">x</span>
+                        class="done-check">
+                <span :id="'itemDisplay_' + item.id">{{item.todoValue}}</span>
+                <span :id="'itemEdit_' + item.id" style="display: none">
+                    <input :id="'itemUpdate_' + item.id"
+                           type="text"
+                           v-model="currentEditItem"
+                           @keypress.enter="updateItem" >
+                </span>
+                <span class="remove-link" :id="'itemRemove_'+item.id" @click="removeEntry">x</span>
             </li>
         </ul>
-        <hr class="hrpartial" v-if="items.length !== 0">
-        <div class="input_div">
+        <hr class="hr-partial" v-if="items.length !== 0">
+        <div class="input-div">
             <label for="newitem">What would you like to accomplish: </label>
             <input id="newitem" type="text" v-model="newItemValue" @keypress.enter="addItem()">
             <button v-if="items.length !== 0 && canUpdate" class="save_button" @click="saveData()">Save List</button>
@@ -54,6 +64,7 @@
             return {
                 items: [],
                 newItemValue: '',
+                currentEditItem: '',
                 todoItemString: 'todoItems',
                 currentId: 0,
                 selectedItem: [],
@@ -75,10 +86,12 @@
                     message: 'Added An Item'
                 })
             },
-            removeEntry: function (itemIndex) {
+            removeEntry: function (event) {
+                const itemIndex = document.getElementById(event.currentTarget.id).id.split('_')[1];
+                event.stopPropagation();
                 let foundIndex = -1;
                 for(let index = 0; index < this.items.length; index++) {
-                    if (this.items[index].id === itemIndex) {
+                    if (this.items[index].id === parseInt(itemIndex, 10)) {
                         foundIndex = index;
                         break;
                     }
@@ -107,11 +120,32 @@
                     }
                 }
             },
-            itemClicked: function($event) {
-                let workItem = this.findItem($event.currentTarget.id);
+            itemClicked: function(event) {
+                event.stopPropagation();
+                const workItem = this.findItem(event.currentTarget.id);
                 if (workItem !== null) {
-                    workItem.completed = $event.currentTarget.checked;
+                    workItem.completed = event.currentTarget.checked;
                 }
+                this.canUpdate = true;
+            },
+            listItemClicked(event){
+                for(let itemIndex = 0; itemIndex < this.items.length; itemIndex++){
+                    let workItemId = this.items[itemIndex];
+                    document.getElementById('itemDisplay_' + workItemId.id).style.display = '';
+                    document.getElementById('itemEdit_' + workItemId.id).style.display = 'none';
+                }
+                const itemId = document.getElementById(event.target.id).id.split('_')[1];
+                const workItem = this.findItem(itemId);
+                this.currentEditItem = workItem.todoValue;
+                document.getElementById('itemEdit_' + itemId).style.display = "inline-block";
+                document.getElementById('itemDisplay_' + itemId).style.display = 'none';
+            },
+            updateItem(event){
+                const itemId = document.getElementById(event.target.id).id.split('_')[1];
+                const workItem = this.findItem(itemId);
+                workItem.todoValue = event.target.value;
+                document.getElementById('itemDisplay_' + itemId).style.display = '';
+                document.getElementById('itemEdit_' + itemId).style.display = 'none';
                 this.canUpdate = true;
             },
             findItem: function(itemId){
@@ -125,7 +159,6 @@
                 return returnItem;
             },
             calculateCurrentId: function(){
-
                 let returnedId = 0;
 
                 this.items.forEach(todoItem => {
@@ -139,7 +172,6 @@
 
                 returnedId++;
                 return returnedId;
-
             },
             serverCheck: function() {
                 let uri = window.location.href;
@@ -152,7 +184,7 @@
 </script>
 
 <style scoped>
-    .mainlist{
+    .todo-list{
         display: block;
         margin-left: auto;
         margin-right: auto;
@@ -160,13 +192,13 @@
         text-align: left;
         list-style-type: none;
     }
-    .hrpartial {
+    .hr-partial {
         display: block;
         margin-left: auto;
         margin-right: auto;
         width: 60%;
     }
-    .input_div{
+    .input-div{
         display: block;
         margin-left: auto;
         margin-right: auto;
@@ -175,22 +207,31 @@
     .save_button{
         float: right;
     }
-    li > span {
-        float: right;
-        cursor: pointer;
-        margin-right: 50px;
-    }
-    .title_bar{
+    .title-bar{
         display: block;
         margin-left: auto;
         margin-right: auto;
         width: 50%;
     }
-    .item_completed {
+    .item-completed {
         text-decoration: line-through;
     }
-    .done_check {
+    .done-check {
         margin-left: -10px;
         margin-right: 15px;
+    }
+    .remove-link{
+        float: right;
+        cursor: pointer;
+        margin-right: 50px;
+    }
+    .float-left {
+        float: left;
+    }
+    .float-right {
+        float: right;
+    }
+    .space-right8{
+        margin-right: 8px;
     }
 </style>
