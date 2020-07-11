@@ -142,11 +142,9 @@
 
             },
             serverCheck: function() {
-                let uri = window.location.href.split('?');
-                if (uri.length == 2) {
-                    if (uri[1].includes('local')) {
-                        this.useServer=false;
-                    }
+                let uri = window.location.href;
+                if (uri.endsWith('local')) {
+                    this.useServer=false;
                 }
             }
         },
