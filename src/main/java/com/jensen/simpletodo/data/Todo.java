@@ -1,7 +1,5 @@
 package com.jensen.simpletodo.data;
 
-import lombok.Data;
-
 import javax.persistence.*;
 
 @Entity

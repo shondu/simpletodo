@@ -16,10 +16,12 @@ public class TodoServiceImpl implements TodoService {
         this.todoRepository = todoRepository;
     }
 
+    @Override
     public List<Todo> getAllTodos(){
         return todoRepository.findAll();
     }
 
+    @Override
     public void updateTodoList(List<Todo> todoList) {
 
         for(Todo workTodo : todoList){
